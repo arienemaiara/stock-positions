@@ -1,0 +1,124 @@
+{
+  "_doc": "Editable scoring config for the decision-support engine. Each indicator declares a weight, the name of the scalar `metric` that the indicators/* modules must compute, and `bands`. Bands are sorted ascending by `upTo`; the engine selects the FIRST band whose `upTo >= metricValue`. The final band uses `upTo: null` as the +infinity catch-all. `score` is the sub-score in [-1, 1] (positive = bullish). A null/unavailable metric yields sub-score 0 plus a flag, and matches no band. Weights sum to ~1.0; tune by hand over time. These are conservative starting defaults, not validated signals.",
+
+  "thresholds": { "buy": 0.30, "sell": -0.30 },
+
+  "indicators": {
+    "pe_vs_sector": {
+      "weight": 0.15,
+      "metric": "peToSectorRatio",
+      "_metric_doc": "trailing P/E divided by sector median P/E. <1 = cheaper than peers. null if earnings negative or sector data missing.",
+      "bands": [
+        { "upTo": 0.7, "score": 1.0 },
+        { "upTo": 0.9, "score": 0.5 },
+        { "upTo": 1.1, "score": 0.0 },
+        { "upTo": 1.3, "score": -0.5 },
+        { "upTo": null, "score": -1.0 }
+      ]
+    },
+
+    "peg": {
+      "weight": 0.10,
+      "metric": "pegRatio",
+      "_metric_doc": "P/E divided by expected earnings growth %. <1 = cheap relative to growth. Emit null (not a negative number) when growth <= 0 so it neutralizes + flags rather than scoring noise.",
+      "bands": [
+        { "upTo": 0.8, "score": 1.0 },
+        { "upTo": 1.0, "score": 0.5 },
+        { "upTo": 1.5, "score": 0.0 },
+        { "upTo": 2.0, "score": -0.5 },
+        { "upTo": null, "score": -1.0 }
+      ]
+    },
+
+    "roe": {
+      "weight": 0.10,
+      "metric": "roe",
+      "_metric_doc": "return on equity as a decimal (0.15 = 15%). Higher is better.",
+      "bands": [
+        { "upTo": 0.0, "score": -1.0 },
+        { "upTo": 0.08, "score": -0.5 },
+        { "upTo": 0.15, "score": 0.0 },
+        { "upTo": 0.20, "score": 0.5 },
+        { "upTo": null, "score": 1.0 }
+      ]
+    },
+
+    "debt_to_equity": {
+      "weight": 0.10,
+      "metric": "debtToEquity",
+      "_metric_doc": "total debt / total equity. Lower is better.",
+      "bands": [
+        { "upTo": 0.3, "score": 1.0 },
+        { "upTo": 0.6, "score": 0.5 },
+        { "upTo": 1.0, "score": 0.0 },
+        { "upTo": 2.0, "score": -0.5 },
+        { "upTo": null, "score": -1.0 }
+      ]
+    },
+
+    "fcf_growth": {
+      "weight": 0.15,
+      "metric": "fcfGrowthYoY",
+      "_metric_doc": "year-over-year free cash flow growth as a decimal (0.10 = +10%). Higher is better.",
+      "bands": [
+        { "upTo": -0.10, "score": -1.0 },
+        { "upTo": 0.0, "score": -0.5 },
+        { "upTo": 0.10, "score": 0.0 },
+        { "upTo": 0.20, "score": 0.5 },
+        { "upTo": null, "score": 1.0 }
+      ]
+    },
+
+    "rsi": {
+      "weight": 0.10,
+      "metric": "rsi14",
+      "_metric_doc": "14-period RSI (0-100). Contrarian/mean-reversion reading: oversold (<30) = bullish, overbought (>70) = bearish. If you prefer a momentum reading, invert these scores.",
+      "bands": [
+        { "upTo": 30, "score": 1.0 },
+        { "upTo": 45, "score": 0.5 },
+        { "upTo": 55, "score": 0.0 },
+        { "upTo": 70, "score": -0.5 },
+        { "upTo": null, "score": -1.0 }
+      ]
+    },
+
+    "macd": {
+      "weight": 0.10,
+      "metric": "macdHistPctOfPrice",
+      "_metric_doc": "(MACD line - signal line) / price * 100. Normalized by price so it is comparable across tickers. Positive = bullish momentum.",
+      "bands": [
+        { "upTo": -0.5, "score": -1.0 },
+        { "upTo": -0.1, "score": -0.5 },
+        { "upTo": 0.1, "score": 0.0 },
+        { "upTo": 0.5, "score": 0.5 },
+        { "upTo": null, "score": 1.0 }
+      ]
+    },
+
+    "sma_trend": {
+      "weight": 0.10,
+      "metric": "priceVsSma200Pct",
+      "_metric_doc": "(price / SMA200 - 1) * 100. Percent above/below the 200-day average. Above = uptrend. The technicals module may also factor the 50/200 cross into this metric.",
+      "bands": [
+        { "upTo": -5, "score": -1.0 },
+        { "upTo": 0, "score": -0.5 },
+        { "upTo": 2, "score": 0.0 },
+        { "upTo": 8, "score": 0.5 },
+        { "upTo": null, "score": 1.0 }
+      ]
+    },
+
+    "volume_confirm": {
+      "weight": 0.10,
+      "metric": "signedVolumeRatio",
+      "_metric_doc": "(recent avg volume / longer-term avg volume) * sign(recent price change). Heavy volume confirming an up-move is bullish; heavy volume on a down-move is bearish. This is the crudest indicator here and the first candidate to down-weight or drop.",
+      "bands": [
+        { "upTo": -1.3, "score": -1.0 },
+        { "upTo": -1.0, "score": -0.5 },
+        { "upTo": 1.0, "score": 0.0 },
+        { "upTo": 1.3, "score": 0.5 },
+        { "upTo": null, "score": 1.0 }
+      ]
+    }
+  }
+}

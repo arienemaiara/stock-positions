@@ -1,0 +1,46 @@
+// Provider-agnostic input shapes. The DataSource layer (yahoo.ts and any
+// successor) converts external responses into these. Indicator functions only
+// touch these shapes, so they stay testable with hand-written fixtures.
+
+export interface FundamentalsSnapshot {
+  trailingPE: number | null;
+  pegRatio: number | null;
+  returnOnEquity: number | null;
+  debtToEquity: number | null;
+  freeCashFlowAnnual: AnnualValue[];
+  sector: string | null;
+}
+
+export interface AnnualValue {
+  year: number;
+  value: number;
+}
+
+// Sector reference data. Currently a single sector-ETF trailing P/E used as a
+// proxy for sector-median P/E.
+export interface SectorReference {
+  sectorPE: number | null;
+}
+
+export interface PriceBar {
+  date: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+}
+
+// Indicator outputs are keyed by the `metric` names declared in config.json.
+// Null = unavailable (the engine flags and renormalizes; never treats as 0).
+export interface Metrics {
+  peToSectorRatio: number | null;
+  pegRatio: number | null;
+  roe: number | null;
+  debtToEquity: number | null;
+  fcfGrowthYoY: number | null;
+  rsi14: number | null;
+  macdHistPctOfPrice: number | null;
+  priceVsSma200Pct: number | null;
+  signedVolumeRatio: number | null;
+}
