@@ -53,6 +53,7 @@ interface CashFlowRow {
 interface Quote {
   currency?: string;
   regularMarketPrice?: number;
+  marketCap?: number;
 }
 
 interface ChartResult {
@@ -141,6 +142,7 @@ export class YahooDataSource implements DataSource {
       ticker: symbol,
       currency: quote.currency ?? null,
       currentPrice: pickNumber(quote.regularMarketPrice),
+      marketCap: pickNumber(quote.marketCap),
       fundamentals,
       sector,
       bars: chart,

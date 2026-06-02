@@ -7,13 +7,13 @@ export function IndicatorBreakdown({ rows }: { rows: BreakdownEntry[] }) {
   );
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
-      <div className="border-b border-slate-100 px-5 py-3">
-        <h2 className="font-medium">Indicator breakdown</h2>
+    <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div className="border-b border-slate-100 px-6 py-4">
+        <h2 className="text-lg font-semibold text-slate-900">
+          Indicator breakdown
+        </h2>
         <p className="text-xs text-slate-500">
-          Each indicator's value, sub-score, effective weight (after
-          renormalization for missing data), and weighted contribution. Hover
-          the ⓘ icons for a plain-English explanation.
+          Each indicator's value, sub-score, weight, and weighted contribution.
         </p>
       </div>
       <table className="w-full text-sm">
@@ -45,19 +45,19 @@ export function IndicatorBreakdown({ rows }: { rows: BreakdownEntry[] }) {
                     </div>
                   )}
                 </Td>
-                <Td className="text-right font-mono tabular-nums">
+                <Td className="text-right tabular-nums">
                   {r.available ? formatValue(r.value) : "—"}
                 </Td>
-                <Td className="text-right font-mono tabular-nums">
+                <Td className="text-right tabular-nums">
                   {r.available ? r.subScore.toFixed(2) : "—"}
                 </Td>
-                <Td className="text-right font-mono tabular-nums">
+                <Td className="text-right tabular-nums">
                   {(r.weight * 100).toFixed(1)}%
                   <div className="text-xs text-slate-400">
                     raw {(r.rawWeight * 100).toFixed(0)}%
                   </div>
                 </Td>
-                <Td className="text-right font-mono tabular-nums">
+                <Td className="text-right tabular-nums">
                   <span
                     className={
                       r.contribution > 0
@@ -114,9 +114,7 @@ function Th({
   children: React.ReactNode;
   className?: string;
 }) {
-  return (
-    <th className={`px-4 py-2 font-medium ${className}`}>{children}</th>
-  );
+  return <th className={`px-4 py-2 font-medium ${className}`}>{children}</th>;
 }
 
 function Td({

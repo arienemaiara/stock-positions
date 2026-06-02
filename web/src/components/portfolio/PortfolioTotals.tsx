@@ -5,19 +5,23 @@ export function PortfolioTotals({ totals }: { totals: CurrencyTotal[] }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {totals.flatMap((t) => [
-        <Stat key={`${t.currency}-cost`} label={`Cost (${t.currency})`} value={money(t.totalCost)} />,
-        <Stat
+        <Kpi
+          key={`${t.currency}-cost`}
+          label={`Cost (${t.currency})`}
+          value={money(t.totalCost)}
+        />,
+        <Kpi
           key={`${t.currency}-value`}
           label={`Value (${t.currency})`}
           value={money(t.marketValue)}
         />,
-        <Stat
+        <Kpi
           key={`${t.currency}-pnl`}
           label={`P/L (${t.currency})`}
           value={`${t.unrealizedPnl >= 0 ? "+" : ""}${money(t.unrealizedPnl)}`}
           tone={t.unrealizedPnl >= 0 ? "good" : "bad"}
         />,
-        <Stat
+        <Kpi
           key={`${t.currency}-pnlpct`}
           label={`P/L % (${t.currency})`}
           value={`${t.unrealizedPnlPct >= 0 ? "+" : ""}${(t.unrealizedPnlPct * 100).toFixed(2)}%`}
@@ -28,7 +32,7 @@ export function PortfolioTotals({ totals }: { totals: CurrencyTotal[] }) {
   );
 }
 
-function Stat({
+function Kpi({
   label,
   value,
   tone,
@@ -44,12 +48,12 @@ function Stat({
         ? "text-rose-600"
         : "text-slate-900";
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
         {label}
       </div>
       <div
-        className={`mt-1 font-mono text-2xl font-semibold tabular-nums ${valueCls}`}
+        className={`mt-2 text-2xl font-semibold tabular-nums ${valueCls}`}
       >
         {value}
       </div>

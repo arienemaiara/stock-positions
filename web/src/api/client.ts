@@ -34,6 +34,7 @@ export interface AnalysisResponse {
   asOf: string;
   currency: string | null;
   currentPrice: number | null;
+  marketCap: number | null;
   sector: string | null;
   sectorRefPE: number | null;
   metrics: Record<string, number | null>;

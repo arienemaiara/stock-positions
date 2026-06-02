@@ -12,17 +12,15 @@ export function ChartCard({
   children: ReactNode;
 }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
-      <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-5 py-3">
+    <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div className="flex items-start justify-between gap-4 px-6 pb-2 pt-4">
         <div>
-          <h3 className="font-medium">{title}</h3>
-          {subtitle && (
-            <p className="text-xs text-slate-500">{subtitle}</p>
-          )}
+          <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
+          {subtitle && <p className="text-xs text-slate-500">{subtitle}</p>}
         </div>
         {legend && <div className="text-xs">{legend}</div>}
       </div>
-      <div className="p-3">{children}</div>
+      <div className="px-3 pb-3">{children}</div>
     </div>
   );
 }

@@ -13,9 +13,9 @@ export function PortfolioTable({
   const [expanded, setExpanded] = useState<string | null>(null);
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
-      <div className="border-b border-slate-100 px-5 py-3">
-        <h2 className="font-medium">Positions</h2>
+    <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div className="border-b border-slate-100 px-6 py-4">
+        <h2 className="text-lg font-semibold text-slate-900">Positions</h2>
         <p className="text-xs text-slate-500">
           Click a ticker to analyze it. Click the row to expand individual lots.
         </p>
@@ -48,7 +48,7 @@ export function PortfolioTable({
                           e.stopPropagation();
                           onAnalyze(p.ticker);
                         }}
-                        className="font-mono font-semibold hover:underline"
+                        className="font-semibold tracking-wide hover:underline"
                       >
                         {p.ticker}
                       </button>
@@ -57,22 +57,22 @@ export function PortfolioTable({
                         {p.lots.length === 1 ? "" : "s"}
                       </div>
                     </Td>
-                    <Td className="text-right font-mono tabular-nums">
+                    <Td className="text-right tabular-nums">
                       {p.totalShares.toFixed(p.totalShares % 1 === 0 ? 0 : 3)}
                     </Td>
-                    <Td className="text-right font-mono tabular-nums">
+                    <Td className="text-right tabular-nums">
                       {money(p.avgCost)}
                     </Td>
-                    <Td className="text-right font-mono tabular-nums">
+                    <Td className="text-right tabular-nums">
                       {p.currentPrice !== null ? money(p.currentPrice) : "—"}
                     </Td>
-                    <Td className="text-right font-mono tabular-nums">
+                    <Td className="text-right tabular-nums">
                       {p.marketValue !== null ? money(p.marketValue) : "—"}
                     </Td>
-                    <Td className="text-right font-mono tabular-nums">
+                    <Td className="text-right tabular-nums">
                       <PnL value={p.unrealizedPnl} />
                     </Td>
-                    <Td className="text-right font-mono tabular-nums">
+                    <Td className="text-right tabular-nums">
                       <PnLPct value={p.unrealizedPnlPct} />
                     </Td>
                   </tr>
@@ -99,12 +99,12 @@ export function PortfolioTable({
                                 className="border-t border-slate-200/70"
                               >
                                 <td className="py-1.5">{lot.tradeDate}</td>
-                                <td className="py-1.5 text-right font-mono tabular-nums">
+                                <td className="py-1.5 text-right tabular-nums">
                                   {lot.shares.toFixed(
                                     lot.shares % 1 === 0 ? 0 : 3,
                                   )}
                                 </td>
-                                <td className="py-1.5 text-right font-mono tabular-nums">
+                                <td className="py-1.5 text-right tabular-nums">
                                   {lot.price !== null ? money(lot.price) : "—"}
                                 </td>
                                 <td className="py-1.5 text-right">

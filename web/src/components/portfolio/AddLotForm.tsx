@@ -33,9 +33,9 @@ export function AddLotForm({
   }
 
   return (
-    <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
       <div className="mb-3">
-        <h2 className="font-medium">Add lot</h2>
+        <h2 className="text-lg font-semibold text-slate-900">Add lot</h2>
         <p className="text-xs text-slate-500">
           Leave price blank to use the closing price on the trade date.
         </p>
@@ -48,7 +48,7 @@ export function AddLotForm({
           <input
             value={ticker}
             onChange={(e) => setTicker(e.target.value.toUpperCase())}
-            className="w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-sm uppercase focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400"
+            className="w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold uppercase tracking-wider focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400"
             placeholder="AAPL"
           />
         </Field>
@@ -67,7 +67,7 @@ export function AddLotForm({
             min="0"
             value={shares}
             onChange={(e) => setShares(e.target.value)}
-            className="w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400"
+            className="w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm tabular-nums focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400"
             placeholder="10"
           />
         </Field>
@@ -78,7 +78,7 @@ export function AddLotForm({
             min="0"
             value={price}
             onChange={(e) => setPrice(e.target.value)}
-            className="w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400"
+            className="w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm tabular-nums focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400"
             placeholder="derived"
           />
         </Field>
@@ -86,7 +86,7 @@ export function AddLotForm({
           <button
             type="submit"
             disabled={isPending}
-            className="rounded-md bg-slate-900 px-5 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:bg-slate-400"
+            className="rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 px-5 py-2 text-sm font-medium text-white shadow-sm hover:from-sky-600 hover:to-indigo-700 disabled:from-slate-300 disabled:to-slate-400"
           >
             {isPending ? "Adding…" : "Add lot"}
           </button>

@@ -8,6 +8,7 @@ export interface AnalysisInputs {
   ticker: string;
   currency: string | null;
   currentPrice: number | null;
+  marketCap: number | null;
   fundamentals: FundamentalsSnapshot;
   sector: SectorReference;
   bars: PriceBar[];

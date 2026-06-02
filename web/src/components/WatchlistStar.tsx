@@ -33,11 +33,11 @@ export function WatchlistStar({ ticker }: { ticker: string }) {
   });
 
   return (
-    <div className="flex flex-col items-end gap-2">
+    <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white p-2 shadow-sm">
       {entry ? (
         <button
           onClick={() => remove.mutate(entry.id)}
-          className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
+          className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50"
           title="Remove from watchlist"
         >
           ✓ Watching
@@ -46,7 +46,7 @@ export function WatchlistStar({ ticker }: { ticker: string }) {
         <button
           onClick={() => add.mutate()}
           disabled={add.isPending}
-          className="rounded-md bg-slate-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-slate-800 disabled:opacity-50"
+          className="rounded-xl bg-slate-900 px-3 py-2 text-xs font-medium text-white hover:bg-slate-800 disabled:opacity-50"
         >
           + Watch
         </button>
@@ -55,7 +55,7 @@ export function WatchlistStar({ ticker }: { ticker: string }) {
       {entry && (
         <button
           onClick={() => fav.mutate({ id: entry.id, isFavorite: !entry.isFavorite })}
-          className="text-xl leading-none"
+          className="grid h-9 w-9 place-items-center rounded-xl border border-slate-200 text-xl leading-none hover:bg-slate-50"
           title={entry.isFavorite ? "Unstar" : "Star"}
         >
           <span className={entry.isFavorite ? "text-amber-500" : "text-slate-300"}>

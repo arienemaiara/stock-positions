@@ -28,8 +28,7 @@ export function PriceChart({
       layout: {
         background: { color: "transparent" },
         textColor: "#475569",
-        fontFamily:
-          "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
+        fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif",
       },
       grid: {
         vertLines: { color: "#f1f5f9" },

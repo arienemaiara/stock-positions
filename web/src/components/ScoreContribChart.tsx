@@ -1,92 +1,80 @@
-import {
-  Bar,
-  BarChart,
-  Cell,
-  ReferenceLine,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
 import type { BreakdownEntry } from "../api/client";
 import { getIndicatorMeta } from "../data/indicatorMeta";
 
 export function ScoreContribChart({ rows }: { rows: BreakdownEntry[] }) {
-  const data = [...rows]
-    .map((r) => ({
-      id: getIndicatorMeta(r.id).label,
-      contribution: r.contribution,
-      available: r.available,
-      subScore: r.subScore,
-      weight: r.weight,
-    }))
-    .sort((a, b) => Math.abs(b.contribution) - Math.abs(a.contribution));
+  const data = [...rows].sort(
+    (a, b) => Math.abs(b.contribution) - Math.abs(a.contribution),
+  );
 
-  const max = Math.max(0.5, ...data.map((d) => Math.abs(d.contribution)));
-  const padded = Math.ceil(max * 10) / 10;
+  const maxAbs = Math.max(
+    0.01,
+    ...data.map((r) => Math.abs(r.contribution)),
+  );
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
-      <div className="border-b border-slate-100 px-5 py-3">
-        <h2 className="font-medium">Score contribution</h2>
+    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="mb-1">
+        <h2 className="text-lg font-semibold text-slate-900">
+          Score contribution
+        </h2>
         <p className="text-xs text-slate-500">
-          Each indicator's weighted contribution to the total. The verdict in
-          one picture.
+          Each indicator's weighted contribution to the verdict. Bar length is
+          relative to the largest. The verdict in one picture.
         </p>
       </div>
-      <div className="p-4" style={{ height: 360 }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart
-            data={data}
-            layout="vertical"
-            margin={{ top: 10, right: 24, left: 0, bottom: 10 }}
-          >
-            <XAxis
-              type="number"
-              domain={[-padded, padded]}
-              tickFormatter={(v) => v.toFixed(2)}
-              stroke="#94a3b8"
-              fontSize={11}
-            />
-            <YAxis
-              type="category"
-              dataKey="id"
-              width={150}
-              stroke="#475569"
-              fontSize={12}
-            />
-            <ReferenceLine x={0} stroke="#cbd5e1" />
-            <Tooltip
-              formatter={(v) =>
-                typeof v === "number" ? v.toFixed(3) : String(v ?? "")
-              }
-              cursor={{ fill: "#f1f5f9" }}
-              contentStyle={{
-                fontSize: 12,
-                borderRadius: 6,
-                border: "1px solid #e2e8f0",
-              }}
-            />
-            <Bar dataKey="contribution" radius={[3, 3, 3, 3]}>
-              {data.map((d, i) => (
-                <Cell
-                  key={i}
-                  fill={
-                    !d.available
-                      ? "#cbd5e1"
-                      : d.contribution > 0
-                        ? "#10b981"
-                        : d.contribution < 0
-                          ? "#f43f5e"
-                          : "#cbd5e1"
+
+      <ul className="mt-5 space-y-5">
+        {data.map((r) => {
+          const meta = getIndicatorMeta(r.id);
+          const pct = (Math.abs(r.contribution) / maxAbs) * 100;
+          const positive = r.contribution > 0;
+          const negative = r.contribution < 0;
+          const barFill = positive
+            ? "from-emerald-300 to-emerald-500"
+            : negative
+              ? "from-rose-300 to-rose-500"
+              : "from-slate-200 to-slate-300";
+          const valueClass = positive
+            ? "text-emerald-600"
+            : negative
+              ? "text-rose-600"
+              : "text-slate-400";
+
+          return (
+            <li
+              key={r.id}
+              className="grid grid-cols-[200px_1fr_72px] items-center gap-4"
+            >
+              <div className="min-w-0">
+                <div className="truncate text-sm font-medium text-slate-800">
+                  {meta.label}
+                </div>
+                {!r.available && (
+                  <div className="text-[11px] text-slate-400">unavailable</div>
+                )}
+              </div>
+
+              <div className="relative h-2.5 overflow-hidden rounded-full bg-slate-100">
+                <div
+                  className={
+                    "absolute left-0 top-0 h-full rounded-full bg-gradient-to-r " +
+                    barFill
                   }
+                  style={{ width: r.available ? `${pct}%` : "0%" }}
                 />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
+              </div>
+
+              <div
+                className={`text-right text-sm font-medium tabular-nums ${valueClass}`}
+              >
+                {r.available
+                  ? `${r.contribution >= 0 ? "+" : ""}${r.contribution.toFixed(3)}`
+                  : "—"}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }
-

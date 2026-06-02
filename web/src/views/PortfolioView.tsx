@@ -29,7 +29,7 @@ export function PortfolioView({ onAnalyze }: { onAnalyze: (t: string) => void })
       {isLoading && <div className="text-slate-500">Loading portfolio…</div>}
 
       {data && data.positions.length === 0 && (
-        <div className="rounded-lg border border-dashed border-slate-300 bg-white p-12 text-center text-slate-500">
+        <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center text-slate-500">
           No lots yet. Add one above. Leave the price blank to derive it from the
           closing price on the trade date.
           <p className="mt-2 text-xs text-slate-400">

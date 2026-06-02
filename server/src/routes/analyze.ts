@@ -29,6 +29,7 @@ export async function analyzeRoute(app: FastifyInstance) {
           asOf: inputs.asOf,
           currency: inputs.currency,
           currentPrice: inputs.currentPrice,
+          marketCap: inputs.marketCap,
           sector: inputs.fundamentals.sector,
           sectorRefPE: inputs.sector.sectorPE,
           metrics,

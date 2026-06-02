@@ -32,39 +32,39 @@ export function AnalyzeView({
 
   return (
     <div className="space-y-6">
-      <TickerSearch
-        initialValue={input}
-        onSubmit={onChangeTicker}
-        disabled={isFetching}
-      />
+      <div className="flex items-stretch gap-3">
+        <div className="flex-1">
+          <TickerSearch
+            initialValue={input}
+            onSubmit={onChangeTicker}
+            disabled={isFetching}
+          />
+        </div>
+        {data && <WatchlistStar ticker={data.ticker} />}
+      </div>
 
       {!ticker && (
-        <div className="rounded-lg border border-dashed border-slate-300 bg-white p-12 text-center text-slate-500">
+        <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center text-slate-500">
           Enter a ticker above (e.g. AAPL, MSFT, NVDA) to see its verdict and
           indicator breakdown.
         </div>
       )}
 
       {ticker && isFetching && !data && (
-        <div className="rounded-lg border border-slate-200 bg-white p-6 text-slate-500">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 text-slate-500 shadow-sm">
           Analyzing {ticker}…
         </div>
       )}
 
       {error && (
-        <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
           {(error as Error).message}
         </div>
       )}
 
       {data && (
         <>
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1">
-              <VerdictCard data={data} />
-            </div>
-            <WatchlistStar ticker={data.ticker} />
-          </div>
+          <VerdictCard data={data} />
 
           <div className="grid gap-6 lg:grid-cols-2">
             <ScoreContribChart rows={data.breakdown} />

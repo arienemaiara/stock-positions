@@ -24,12 +24,14 @@ export function PositionPnLChart({ positions }: { positions: Position[] }) {
   const padded = Math.ceil(max);
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
-      <div className="border-b border-slate-100 px-5 py-3">
-        <h2 className="font-medium">Unrealized P/L %</h2>
+    <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div className="px-6 pt-4">
+        <h2 className="text-lg font-semibold text-slate-900">
+          Unrealized P/L %
+        </h2>
         <p className="text-xs text-slate-500">
-          Per-position unrealized gain/loss. Position cost basis is naive
-          average (no FIFO / tax lots).
+          Per-position unrealized gain/loss. Cost basis is the simple average
+          (no FIFO / tax lots).
         </p>
       </div>
       <div className="p-4" style={{ height: 320 }}>
@@ -57,7 +59,7 @@ export function PositionPnLChart({ positions }: { positions: Position[] }) {
                 width={80}
                 stroke="#475569"
                 fontSize={12}
-                tick={{ fontFamily: "ui-monospace, monospace" }}
+                tick={{ fontWeight: 600 }}
               />
               <ReferenceLine x={0} stroke="#cbd5e1" />
               <Tooltip

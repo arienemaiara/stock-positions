@@ -32,9 +32,9 @@ export function AllocationDonut({ positions }: { positions: Position[] }) {
   const total = data.reduce((s, d) => s + d.value, 0);
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
-      <div className="border-b border-slate-100 px-5 py-3">
-        <h2 className="font-medium">Allocation</h2>
+    <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div className="px-6 pt-4">
+        <h2 className="text-lg font-semibold text-slate-900">Allocation</h2>
         <p className="text-xs text-slate-500">
           Share of total market value by ticker.
         </p>
