@@ -40,6 +40,7 @@ export function computeMetrics(input: {
     debtToEquity: fundamentals.debtToEquity(input.fundamentals),
     netDebtToEbitda: fundamentals.netDebtToEbitda(input.fundamentals),
     fcfGrowthYoY: fundamentals.fcfGrowthYoY(input.fundamentals),
+    impliedGrowthGapPp: fundamentals.impliedGrowthGapPp(input.fundamentals),
     rsi14: technicals.rsi(closes, 14),
     macdHistPctOfPrice: technicals.macdHistPctOfPrice(closes),
     priceVsSma200Pct: technicals.priceVsSma200Pct(closes),

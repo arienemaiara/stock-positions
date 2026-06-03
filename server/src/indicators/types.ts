@@ -17,6 +17,11 @@ export interface FundamentalsSnapshot {
   taxProvision: number | null;
   investedCapital: number | null;
   freeCashFlowAnnual: AnnualValue[];
+  // Analyst consensus EPS growth for next fiscal year, as a decimal (0.15 = 15%).
+  // From Yahoo earningsTrend, period "+1y".
+  expectedEpsGrowth1y: number | null;
+  // Diluted EPS history, newest first. Used to compute realized CAGR.
+  epsAnnual: AnnualValue[];
   sector: string | null;
 }
 
@@ -52,6 +57,7 @@ export interface Metrics {
   debtToEquity: number | null;
   netDebtToEbitda: number | null;
   fcfGrowthYoY: number | null;
+  impliedGrowthGapPp: number | null;
   rsi14: number | null;
   macdHistPctOfPrice: number | null;
   priceVsSma200Pct: number | null;

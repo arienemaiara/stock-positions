@@ -93,6 +93,32 @@ export function debtToEquity(fund: FundamentalsSnapshot): number | null {
 }
 
 /**
+ * Gap between next-year consensus EPS growth and the company's realized 3-year
+ * EPS CAGR, in percentage points. Positive = market pricing in growth above
+ * what the company has delivered (optimistic). Negative = market discounting a
+ * company that has been growing (pessimistic).
+ *
+ * Returns null when forward growth is missing, fewer than 4 annual EPS points
+ * exist, or either endpoint EPS is non-positive (CAGR is undefined for sign
+ * flips and meaningless for zero/loss bases).
+ */
+export function impliedGrowthGapPp(
+  fund: FundamentalsSnapshot,
+): number | null {
+  const expected = fund.expectedEpsGrowth1y;
+  if (expected === null) return null;
+
+  const eps = fund.epsAnnual;
+  if (eps.length < 4) return null;
+  const newest = eps[0]!.value;
+  const oldest = eps[3]!.value;
+  if (newest <= 0 || oldest <= 0) return null;
+
+  const realizedCagr = Math.pow(newest / oldest, 1 / 3) - 1;
+  return (expected - realizedCagr) * 100;
+}
+
+/**
  * Year-over-year free cash flow growth. Uses the two most recent annual values
  * (snapshot is newest-first). Returns (newest - prior) / |prior|.
  *

@@ -5,7 +5,7 @@
 
   "indicators": {
     "pe_vs_sector": {
-      "weight": 0.10,
+      "weight": 0.09,
       "metric": "peToSectorRatio",
       "_metric_doc": "trailing P/E divided by sector median P/E. <1 = cheaper than peers. null if earnings negative or sector data missing.",
       "bands": [
@@ -18,7 +18,7 @@
     },
 
     "peg": {
-      "weight": 0.06,
+      "weight": 0.04,
       "metric": "pegRatio",
       "_metric_doc": "P/E divided by expected earnings growth %. <1 = cheap relative to growth. Emit null (not a negative number) when growth <= 0 so it neutralizes + flags rather than scoring noise.",
       "bands": [
@@ -31,7 +31,7 @@
     },
 
     "forward_pe": {
-      "weight": 0.05,
+      "weight": 0.03,
       "metric": "forwardPE",
       "_metric_doc": "Yahoo's forward P/E — price divided by next-twelve-month consensus EPS. Lower is cheaper.",
       "bands": [
@@ -118,6 +118,19 @@
         { "upTo": 0.10, "score": 0.0 },
         { "upTo": 0.20, "score": 0.5 },
         { "upTo": null, "score": 1.0 }
+      ]
+    },
+
+    "implied_growth_vs_trend": {
+      "weight": 0.09,
+      "metric": "impliedGrowthGapPp",
+      "_metric_doc": "Next-year consensus EPS growth (from Yahoo earningsTrend +1y) minus realized 3-year EPS CAGR, in percentage points. Positive = market expects acceleration vs the company's track record (priced for growth); negative = market discounting a company that has been delivering.",
+      "bands": [
+        { "upTo": -15, "score": 1.0 },
+        { "upTo": -5, "score": 0.5 },
+        { "upTo": 5, "score": 0.0 },
+        { "upTo": 15, "score": -0.5 },
+        { "upTo": null, "score": -1.0 }
       ]
     },
 

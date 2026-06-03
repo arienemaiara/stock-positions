@@ -53,6 +53,11 @@ export const INDICATOR_META: Record<string, IndicatorMeta> = {
     short: "Year-over-year change in free cash flow",
     long: "Whether the cash the business generates after investments is growing or shrinking. Growing free cash flow funds buybacks, dividends, and reinvestment without taking on debt — it's one of the cleanest signals of business health.",
   },
+  implied_growth_vs_trend: {
+    label: "Expected vs delivered growth",
+    short: "Next-year forecast minus 3y realized EPS growth (pp)",
+    long: "Compares the EPS growth analysts expect next year to the company's actual 3-year EPS CAGR. Positive means the market is pricing in faster growth than the company has been delivering — easier to disappoint. Negative means the market is discounting a company that has been growing — possible opportunity. Read alongside PEG and forward P/E.",
+  },
   rsi: {
     label: "Recent momentum",
     short: "RSI (14-day). Contrarian read.",

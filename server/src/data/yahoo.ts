@@ -51,6 +51,12 @@ interface QuoteSummary {
     enterpriseToEbitda?: number;
   };
   assetProfile?: { sector?: string };
+  earningsTrend?: {
+    trend?: Array<{
+      period?: string;
+      growth?: number | null;
+    }>;
+  };
 }
 
 interface CashFlowRow {
@@ -65,6 +71,8 @@ interface FinancialsRow {
   operatingIncome?: number;
   pretaxIncome?: number;
   taxProvision?: number;
+  dilutedEPS?: number;
+  basicEPS?: number;
 }
 
 interface BalanceSheetRow {
@@ -139,6 +147,7 @@ export class YahooDataSource implements DataSource {
             "financialData",
             "defaultKeyStatistics",
             "assetProfile",
+            "earningsTrend",
           ],
         }) as Promise<QuoteSummary>,
         fetchChart(symbol),
@@ -172,6 +181,8 @@ export class YahooDataSource implements DataSource {
       taxProvision: pickNumber(lastFin?.taxProvision),
       investedCapital: pickNumber(lastBs?.investedCapital),
       freeCashFlowAnnual: extractAnnualFcf(cashFlow),
+      expectedEpsGrowth1y: extractForwardGrowth(summary.earningsTrend, "+1y"),
+      epsAnnual: extractAnnualEps(financials),
       sector: sectorName,
     };
 
@@ -258,8 +269,9 @@ function yahooDebtToEquityToDecimal(
 }
 
 async function fetchAnnualFinancials(symbol: string): Promise<FinancialsRow[]> {
+  // 5 years so we can compute a 3-year EPS CAGR (needs 4 annual points).
   const period1 = new Date();
-  period1.setFullYear(period1.getFullYear() - 2);
+  period1.setFullYear(period1.getFullYear() - 5);
   try {
     return (await yahooFinance.fundamentalsTimeSeries(symbol, {
       period1,
@@ -322,6 +334,30 @@ function extractAnnualFcf(rows: CashFlowRow[]): AnnualValue[] {
     out.push({ year, value });
   }
   // Newest first.
+  out.sort((a, b) => b.year - a.year);
+  return out;
+}
+
+function extractForwardGrowth(
+  trend: QuoteSummary["earningsTrend"],
+  period: string,
+): number | null {
+  const entries = trend?.trend ?? [];
+  for (const e of entries) {
+    if (e.period === period) return pickNumber(e.growth);
+  }
+  return null;
+}
+
+function extractAnnualEps(rows: FinancialsRow[]): AnnualValue[] {
+  const out: AnnualValue[] = [];
+  for (const row of rows) {
+    const value = pickNumber(row.dilutedEPS) ?? pickNumber(row.basicEPS);
+    if (value === null) continue;
+    const year = extractYear(row.date);
+    if (year === null) continue;
+    out.push({ year, value });
+  }
   out.sort((a, b) => b.year - a.year);
   return out;
 }
