@@ -133,19 +133,23 @@ ticker. Data lives in Turso and survives restarts and deploys.
 
 ## Data sources
 
-The app talks to one of two providers behind the same `DataSource` interface:
+The app talks to one of three providers behind the same `DataSource`
+interface. Selection is automatic, in priority order:
 
-- **Yahoo Finance** via `yahoo-finance2` — default. No key required, but it's
-  scraping (no official API), and shared-IP hosts like Render free-tier get
-  rate-limited by Yahoo's anti-scraping.
-- **Financial Modeling Prep (FMP)** — a real API. Set `FMP_API_KEY` and the
-  app uses FMP for everything. Free tier is 250 calls/day, US tickers only.
-  Each cold ticker analyze burns ~8 calls; with the 1-hour cache that's plenty
-  for a single user.
+1. **`FINNHUB_API_KEY` set → Finnhub.** Recommended free choice. 60 calls/min
+   on the free tier and covers everything this app reads (quote, fundamentals
+   via `/stock/metric`, annual financials via `/stock/financials-reported`,
+   EPS estimates, daily candles). US tickers only on free.
+2. **`FMP_API_KEY` set → Financial Modeling Prep.** 250 calls/day on free,
+   but several endpoints (annual statements, analyst estimates) are
+   paywalled. Most of the fundamentals indicators go null on free — works,
+   just with reduced coverage. Useful if you already have an FMP paid plan.
+3. **Neither key set → Yahoo Finance** via `yahoo-finance2`. No key required,
+   but it's scraping (no official API). Shared-IP hosts like Render free
+   often hit Yahoo's anti-scraping 429s.
 
-The selection is automatic: `FMP_API_KEY` set → FMP, otherwise Yahoo. To use
-FMP, sign up at https://site.financialmodelingprep.com/, copy the key, and set
-`FMP_API_KEY` in Render's environment (or in your local shell for dev).
+To use Finnhub: sign up at https://finnhub.io/, copy the API key, set
+`FINNHUB_API_KEY` in Render's environment (or your local shell for dev).
 
 ## Tuning the scoring engine
 

@@ -1,11 +1,16 @@
 import { CachedDataSource } from "./cache.js";
+import { FinnhubDataSource } from "./finnhub.js";
 import { FmpDataSource } from "./fmp.js";
 import type { DataSource } from "./source.js";
 import { YahooDataSource } from "./yahoo.js";
 
 function selectSource(): DataSource {
+  const finnhubKey = process.env.FINNHUB_API_KEY?.trim();
+  if (finnhubKey) return new FinnhubDataSource(finnhubKey);
+
   const fmpKey = process.env.FMP_API_KEY?.trim();
   if (fmpKey) return new FmpDataSource(fmpKey);
+
   return new YahooDataSource();
 }
 

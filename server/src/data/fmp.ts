@@ -396,6 +396,10 @@ function pickNumber(v: unknown): number | null {
 
 async function fetchJson(url: string): Promise<unknown> {
   const res = await fetch(url);
+  // FMP returns 401/403 for paywalled endpoints on the free tier. Treat as
+  // "data unavailable" instead of crashing — the indicator goes null + flagged
+  // and the rest of the analysis still runs.
+  if (res.status === 401 || res.status === 403) return null;
   if (!res.ok) {
     throw new Error(`FMP ${res.status} ${res.statusText} for ${redactKey(url)}`);
   }
