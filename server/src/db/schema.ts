@@ -1,32 +1,31 @@
-import Database from "better-sqlite3";
-import { mkdirSync } from "node:fs";
-import { dirname } from "node:path";
+import { createClient, type Client } from "@libsql/client";
 
-const DB_PATH = process.env.DB_PATH ?? "server-data.db";
+const TURSO_URL = process.env.TURSO_DATABASE_URL;
+const TURSO_TOKEN = process.env.TURSO_AUTH_TOKEN;
 
-mkdirSync(dirname(DB_PATH) || ".", { recursive: true });
+// In production we expect TURSO_DATABASE_URL=libsql://...turso.io plus a token.
+// In dev we fall back to a local SQLite file via libsql's file: scheme.
+const url = TURSO_URL ?? `file:${process.env.DB_PATH ?? "server-data.db"}`;
 
-export const db = new Database(DB_PATH);
-db.pragma("journal_mode = WAL");
-db.pragma("foreign_keys = ON");
+export const db: Client = createClient({
+  url,
+  authToken: TURSO_TOKEN,
+});
 
-db.exec(`
-  CREATE TABLE IF NOT EXISTS cache (
+const SCHEMA = [
+  `CREATE TABLE IF NOT EXISTS cache (
     key        TEXT PRIMARY KEY,
     value      TEXT NOT NULL,
     expires_at INTEGER NOT NULL
-  );
-
-  CREATE INDEX IF NOT EXISTS cache_expires_at_idx ON cache (expires_at);
-
-  CREATE TABLE IF NOT EXISTS watchlist (
+  )`,
+  `CREATE INDEX IF NOT EXISTS cache_expires_at_idx ON cache (expires_at)`,
+  `CREATE TABLE IF NOT EXISTS watchlist (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     ticker      TEXT NOT NULL UNIQUE,
     is_favorite INTEGER NOT NULL DEFAULT 0,
     created_at  TEXT NOT NULL DEFAULT (datetime('now'))
-  );
-
-  CREATE TABLE IF NOT EXISTS lots (
+  )`,
+  `CREATE TABLE IF NOT EXISTS lots (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
     ticker     TEXT NOT NULL,
     trade_date TEXT NOT NULL,
@@ -34,10 +33,20 @@ db.exec(`
     price      REAL,
     type       TEXT NOT NULL DEFAULT 'buy',
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
-  );
+  )`,
+  `CREATE INDEX IF NOT EXISTS lots_ticker_idx ON lots (ticker)`,
+];
 
-  CREATE INDEX IF NOT EXISTS lots_ticker_idx ON lots (ticker);
-`);
+/**
+ * Idempotent schema bootstrap. Safe to call on every boot. We can't run this
+ * at module load time because libsql's API is async, so the server's main()
+ * awaits this before listening.
+ */
+export async function initSchema(): Promise<void> {
+  for (const stmt of SCHEMA) {
+    await db.execute(stmt);
+  }
+}
 
 export interface CacheRow {
   key: string;

@@ -1,10 +1,6 @@
 import { db, type LotRow } from "../db/schema.js";
 import { dataSource } from "../data/index.js";
 
-const lotsStmt = db.prepare<[], LotRow>(
-  "SELECT id, ticker, trade_date, shares, price, type, created_at FROM lots ORDER BY ticker, trade_date, id",
-);
-
 export interface PositionLot {
   id: number;
   tradeDate: string;
@@ -42,8 +38,24 @@ export interface PortfolioSnapshot {
   totals: CurrencyTotal[];
 }
 
+function lotFromRow(row: Record<string, unknown>): LotRow {
+  return {
+    id: Number(row.id),
+    ticker: String(row.ticker),
+    trade_date: String(row.trade_date),
+    shares: Number(row.shares),
+    price: row.price === null ? null : Number(row.price),
+    type: String(row.type),
+    created_at: String(row.created_at),
+  };
+}
+
 export async function getPortfolioSnapshot(): Promise<PortfolioSnapshot> {
-  const rows = lotsStmt.all();
+  const result = await db.execute(
+    "SELECT id, ticker, trade_date, shares, price, type, created_at FROM lots ORDER BY ticker, trade_date, id",
+  );
+  const rows = result.rows.map(lotFromRow);
+
   const byTicker = new Map<string, LotRow[]>();
   for (const lot of rows) {
     if (!byTicker.has(lot.ticker)) byTicker.set(lot.ticker, []);
@@ -129,10 +141,6 @@ export async function getPortfolioSnapshot(): Promise<PortfolioSnapshot> {
 
   positions.sort((a, b) => a.ticker.localeCompare(b.ticker));
 
-  // Aggregate by currency. Tickers whose currency we couldn't resolve are
-  // grouped under "?" so they're visible but not silently merged. Closed
-  // positions (zero shares) still contribute realized P/L to their currency
-  // bucket — pick the lots' ticker currency as best-effort.
   const byCcy = new Map<string, CurrencyTotal>();
   for (const p of positions) {
     const ccy = p.currency ?? "?";

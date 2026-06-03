@@ -3,14 +3,6 @@ import { db, type LotRow } from "../db/schema.js";
 import { dataSource } from "../data/index.js";
 import { getPortfolioSnapshot } from "../portfolio/positions.js";
 
-const insertLotStmt = db.prepare(
-  "INSERT INTO lots (ticker, trade_date, shares, price, type) VALUES (?, ?, ?, ?, ?)",
-);
-const deleteLotStmt = db.prepare("DELETE FROM lots WHERE id = ?");
-const lotsForTickerStmt = db.prepare<[string], LotRow>(
-  "SELECT id, ticker, trade_date, shares, price, type, created_at FROM lots WHERE ticker = ?",
-);
-
 type AddLotBody = {
   ticker?: string;
   tradeDate?: string;
@@ -18,6 +10,18 @@ type AddLotBody = {
   price?: number | null;
   type?: string;
 };
+
+function lotFromRow(row: Record<string, unknown>): LotRow {
+  return {
+    id: Number(row.id),
+    ticker: String(row.ticker),
+    trade_date: String(row.trade_date),
+    shares: Number(row.shares),
+    price: row.price === null ? null : Number(row.price),
+    type: String(row.type),
+    created_at: String(row.created_at),
+  };
+}
 
 export async function portfolioRoute(app: FastifyInstance) {
   app.get("/api/portfolio", async () => {
@@ -50,7 +54,6 @@ export async function portfolioRoute(app: FastifyInstance) {
       }
       price = p;
     } else {
-      // Derive from historical close on trade_date.
       price = await dataSource.getHistoricalClose(ticker, tradeDate);
       if (price === null) {
         return reply.code(400).send({
@@ -60,15 +63,18 @@ export async function portfolioRoute(app: FastifyInstance) {
     }
 
     if (type === "sell") {
-      const ok = canSell(ticker, tradeDate, shares);
+      const ok = await canSell(ticker, tradeDate, shares);
       if (!ok.ok) {
         return reply.code(400).send({ error: ok.reason });
       }
     }
 
-    const result = insertLotStmt.run(ticker, tradeDate, shares, price, type);
+    const result = await db.execute({
+      sql: "INSERT INTO lots (ticker, trade_date, shares, price, type) VALUES (?, ?, ?, ?, ?)",
+      args: [ticker, tradeDate, shares, price, type],
+    });
     return reply.code(201).send({
-      id: result.lastInsertRowid,
+      id: Number(result.lastInsertRowid),
       ticker,
       tradeDate,
       shares,
@@ -84,8 +90,12 @@ export async function portfolioRoute(app: FastifyInstance) {
       if (!Number.isFinite(id)) {
         return reply.code(400).send({ error: "bad id" });
       }
-      const result = deleteLotStmt.run(id);
-      if (result.changes === 0) return reply.code(404).send({ error: "not found" });
+      const result = await db.execute({
+        sql: "DELETE FROM lots WHERE id = ?",
+        args: [id],
+      });
+      if (result.rowsAffected === 0)
+        return reply.code(404).send({ error: "not found" });
       return { ok: true };
     },
   );
@@ -93,16 +103,19 @@ export async function portfolioRoute(app: FastifyInstance) {
 
 /**
  * Simulate adding a sell to the existing timeline for this ticker. Returns
- * { ok: false } if running shares would go negative at any point. This guards
- * against selling more than was owned at a given date, even when lots are
- * entered out of chronological order.
+ * { ok: false } if running shares would go negative at any point.
  */
-function canSell(
+async function canSell(
   ticker: string,
   tradeDate: string,
   shares: number,
-): { ok: true } | { ok: false; reason: string } {
-  const lots = lotsForTickerStmt.all(ticker);
+): Promise<{ ok: true } | { ok: false; reason: string }> {
+  const result = await db.execute({
+    sql: "SELECT id, ticker, trade_date, shares, price, type, created_at FROM lots WHERE ticker = ?",
+    args: [ticker],
+  });
+  const lots = result.rows.map(lotFromRow);
+
   const synthetic = {
     id: Number.MAX_SAFE_INTEGER,
     ticker,
@@ -122,10 +135,9 @@ function canSell(
   for (const lot of timeline) {
     if (lot.type === "sell") {
       if (lot.shares > running + 1e-9) {
-        const haveAt = running;
         return {
           ok: false,
-          reason: `can't sell ${shares} of ${ticker} on ${tradeDate} — only ${haveAt.toFixed(3)} held at that date`,
+          reason: `can't sell ${shares} of ${ticker} on ${tradeDate} — only ${running.toFixed(3)} held at that date`,
         };
       }
       running -= lot.shares;

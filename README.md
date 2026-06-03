@@ -34,7 +34,8 @@ not a cost-basis method for tax purposes (no FIFO / lot-matching, no fees).
 npm install
 ```
 
-Installs both workspaces and builds `better-sqlite3` from source.
+Installs both workspaces. SQLite access goes through `@libsql/client`, which is
+compatible with both local SQLite files (dev) and Turso (production).
 
 ## Run (dev)
 
@@ -66,12 +67,69 @@ npm run typecheck
 
 ## Data persistence
 
-`server/server-data.db` (SQLite) holds the response cache plus the watchlist
-and portfolio lots. Delete it to reset everything, or clear just the cache:
+Dev uses a local SQLite file via libsql's `file:` URL — default location
+`server/server-data.db`. Delete it (or run the reset script) to wipe everything,
+or clear just the cache:
 
 ```
-cd server && node scripts/clear-cache.mjs
+npm run reset         # wipes cache + watchlist + portfolio
+npm run cache:clear   # just the response cache
 ```
+
+In production point libsql at Turso by setting:
+
+- `TURSO_DATABASE_URL` (e.g. `libsql://your-db.turso.io`)
+- `TURSO_AUTH_TOKEN`
+
+The schema is bootstrapped on every boot (`CREATE TABLE IF NOT EXISTS`).
+
+## Deploying to Render
+
+Render free tier + Turso for persistence + HTTP basic auth. ~$0/month for
+personal use.
+
+### 1. Create a Turso DB
+
+```
+brew install tursodatabase/tap/turso   # or see https://docs.turso.tech/
+turso auth signup
+turso db create stock-positions
+turso db show stock-positions --url    # → libsql://...turso.io
+turso db tokens create stock-positions # → eyJ...
+```
+
+Keep the URL and token; you'll paste them into Render.
+
+### 2. Push this repo to GitHub
+
+Render reads `render.yaml` from the repo root and configures the service from
+it. Connect the repo in the Render dashboard → "New + → Blueprint".
+
+### 3. Set environment variables in Render
+
+The `render.yaml` declares these as required; set them in the Render UI:
+
+- `TURSO_DATABASE_URL`
+- `TURSO_AUTH_TOKEN`
+- `BASIC_AUTH_USER` — pick anything
+- `BASIC_AUTH_PASSWORD` — long random string
+
+`NODE_ENV=production`, `HOST=0.0.0.0`, and `CORS_ORIGIN` are set by
+`render.yaml` automatically (edit the CORS_ORIGIN in the YAML if your service
+URL differs).
+
+### 4. Deploy
+
+Render builds with `npm install --include=dev && npm run build` and starts
+with `npm --workspace server run start`. The Fastify server serves both the API
+and the built frontend from `web/dist`, so there's just one service.
+
+Health check at `/api/health` (skipped by basic auth so Render can probe it).
+
+### 5. Visit
+
+Open the Render URL, log in with the basic auth credentials, and analyze a
+ticker. Data lives in Turso and survives restarts and deploys.
 
 ## Tuning the scoring engine
 

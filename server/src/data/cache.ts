@@ -4,29 +4,34 @@ import type { DataSource, AnalysisInputs } from "./source.js";
 const ANALYZE_TTL_MS = 10 * 60 * 1000;
 const QUOTE_TTL_MS = 5 * 60 * 1000;
 
-const getStmt = db.prepare<[string], { value: string; expires_at: number }>(
-  "SELECT value, expires_at FROM cache WHERE key = ?",
-);
-const setStmt = db.prepare(
-  "INSERT OR REPLACE INTO cache (key, value, expires_at) VALUES (?, ?, ?)",
-);
-const cleanupStmt = db.prepare(
-  "DELETE FROM cache WHERE expires_at <= ?",
-);
-
-export function cacheGet<T>(key: string): T | null {
-  const row = getStmt.get(key);
+export async function cacheGet<T>(key: string): Promise<T | null> {
+  const result = await db.execute({
+    sql: "SELECT value, expires_at FROM cache WHERE key = ?",
+    args: [key],
+  });
+  const row = result.rows[0];
   if (!row) return null;
-  if (row.expires_at <= Date.now()) return null;
-  return JSON.parse(row.value) as T;
+  const expiresAt = Number(row.expires_at);
+  if (expiresAt <= Date.now()) return null;
+  return JSON.parse(String(row.value)) as T;
 }
 
-export function cacheSet<T>(key: string, value: T, ttlMs: number): void {
-  setStmt.run(key, JSON.stringify(value), Date.now() + ttlMs);
+export async function cacheSet<T>(
+  key: string,
+  value: T,
+  ttlMs: number,
+): Promise<void> {
+  await db.execute({
+    sql: "INSERT OR REPLACE INTO cache (key, value, expires_at) VALUES (?, ?, ?)",
+    args: [key, JSON.stringify(value), Date.now() + ttlMs],
+  });
 }
 
-export function cleanupExpired(): void {
-  cleanupStmt.run(Date.now());
+export async function cleanupExpired(): Promise<void> {
+  await db.execute({
+    sql: "DELETE FROM cache WHERE expires_at <= ?",
+    args: [Date.now()],
+  });
 }
 
 /**
@@ -44,10 +49,10 @@ export class CachedDataSource implements DataSource {
 
   async getAnalysisInputs(ticker: string): Promise<AnalysisInputs> {
     const key = `analyze:${ticker.toUpperCase()}`;
-    const hit = cacheGet<AnalysisInputs>(key);
+    const hit = await cacheGet<AnalysisInputs>(key);
     if (hit) return hit;
     const fresh = await this.inner.getAnalysisInputs(ticker);
-    cacheSet(key, fresh, ANALYZE_TTL_MS);
+    await cacheSet(key, fresh, ANALYZE_TTL_MS);
     return fresh;
   }
 
@@ -61,7 +66,7 @@ export class CachedDataSource implements DataSource {
   ): Promise<{ price: number | null; currency: string | null }> {
     const cacheKey = `quote:${ticker.toUpperCase()}`;
     type QuoteCache = { price: number | null; currency: string | null };
-    const hit = cacheGet<QuoteCache>(cacheKey);
+    const hit = await cacheGet<QuoteCache>(cacheKey);
     if (hit) return hit;
 
     const inputs = await this.getAnalysisInputs(ticker);
@@ -69,7 +74,7 @@ export class CachedDataSource implements DataSource {
       price: inputs.currentPrice,
       currency: inputs.currency,
     };
-    cacheSet(cacheKey, value, QUOTE_TTL_MS);
+    await cacheSet(cacheKey, value, QUOTE_TTL_MS);
     return value;
   }
 }
