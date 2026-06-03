@@ -1,8 +1,11 @@
 import { db } from "../db/schema.js";
 import type { DataSource, AnalysisInputs } from "./source.js";
 
-const ANALYZE_TTL_MS = 10 * 60 * 1000;
-const QUOTE_TTL_MS = 5 * 60 * 1000;
+// Long TTLs to limit Yahoo API hits — free-tier shared IPs get rate-limited
+// fast. Fundamentals barely change inside an hour; portfolio price column
+// staleness up to 30 min is acceptable for a personal dashboard.
+const ANALYZE_TTL_MS = 60 * 60 * 1000;
+const QUOTE_TTL_MS = 30 * 60 * 1000;
 
 export async function cacheGet<T>(key: string): Promise<T | null> {
   const result = await db.execute({

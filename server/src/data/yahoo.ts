@@ -139,22 +139,24 @@ export class YahooDataSource implements DataSource {
     const symbol = ticker.trim().toUpperCase();
 
     const [quote, summary, chart, cashFlow, financials, balanceSheet] =
-      await Promise.all([
-        yahooFinance.quote(symbol) as Promise<Quote>,
-        yahooFinance.quoteSummary(symbol, {
-          modules: [
-            "summaryDetail",
-            "financialData",
-            "defaultKeyStatistics",
-            "assetProfile",
-            "earningsTrend",
-          ],
-        }) as Promise<QuoteSummary>,
-        fetchChart(symbol),
-        fetchAnnualCashFlow(symbol),
-        fetchAnnualFinancials(symbol),
-        fetchAnnualBalanceSheet(symbol),
-      ]);
+      await withRetry(() =>
+        Promise.all([
+          yahooFinance.quote(symbol) as Promise<Quote>,
+          yahooFinance.quoteSummary(symbol, {
+            modules: [
+              "summaryDetail",
+              "financialData",
+              "defaultKeyStatistics",
+              "assetProfile",
+              "earningsTrend",
+            ],
+          }) as Promise<QuoteSummary>,
+          fetchChart(symbol),
+          fetchAnnualCashFlow(symbol),
+          fetchAnnualFinancials(symbol),
+          fetchAnnualBalanceSheet(symbol),
+        ]),
+      );
 
     const lastFin = financials[financials.length - 1];
     const lastBs = balanceSheet[balanceSheet.length - 1];
@@ -372,4 +374,39 @@ function extractYear(d: Date | string | number | undefined): number | null {
 function pickNumber(v: unknown): number | null {
   if (typeof v === "number" && Number.isFinite(v)) return v;
   return null;
+}
+
+/**
+ * Retry Yahoo calls on transient rate-limit / crumb failures. Yahoo's
+ * anti-scraping returns 429 on bursts; one or two backoff retries usually
+ * recovers. Throws the last error if all attempts fail.
+ */
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  attempts = 3,
+  baseDelayMs = 1000,
+): Promise<T> {
+  let lastError: unknown;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastError = err;
+      if (!isTransientYahooError(err) || i === attempts - 1) throw err;
+      await sleep(baseDelayMs * Math.pow(2, i));
+    }
+  }
+  throw lastError;
+}
+
+function isTransientYahooError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  // 429 = rate limit; never retry, let the cache absorb it.
+  if (/429|rate limit/i.test(msg)) return false;
+  // Pure network glitches and non-429 crumb failures are safe to retry once.
+  return /crumb|ECONNRESET|ETIMEDOUT|socket hang up/i.test(msg);
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms));
 }
