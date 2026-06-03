@@ -2,10 +2,38 @@ import type { BreakdownEntry } from "../api/client";
 import { getIndicatorMeta } from "../data/indicatorMeta";
 import { formatScorePct, readingLabel, readingTone } from "../data/format";
 
+// Stable display order, grouped by category. Anything not listed falls to the
+// bottom in its original order.
+const INDICATOR_ORDER = [
+  // Valuation
+  "pe_vs_sector",
+  "forward_pe",
+  "ev_to_ebitda",
+  "peg",
+  "implied_growth_vs_trend",
+  // Quality / profitability
+  "roe",
+  "roic",
+  // Balance sheet
+  "debt_to_equity",
+  "net_debt_to_ebitda",
+  // Growth
+  "fcf_growth",
+  // Trend / momentum
+  "sma_trend",
+  "sma_90_trend",
+  "macd",
+  "rsi",
+  "volume_confirm",
+];
+
 export function IndicatorBreakdown({ rows }: { rows: BreakdownEntry[] }) {
-  const sorted = [...rows].sort(
-    (a, b) => Math.abs(b.contribution) - Math.abs(a.contribution),
-  );
+  const rank = new Map(INDICATOR_ORDER.map((id, i) => [id, i]));
+  const sorted = [...rows].sort((a, b) => {
+    const ra = rank.get(a.id) ?? Number.MAX_SAFE_INTEGER;
+    const rb = rank.get(b.id) ?? Number.MAX_SAFE_INTEGER;
+    return ra - rb;
+  });
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
