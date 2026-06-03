@@ -6,26 +6,31 @@ export function PortfolioTotals({ totals }: { totals: CurrencyTotal[] }) {
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {totals.flatMap((t) => [
         <Kpi
-          key={`${t.currency}-cost`}
-          label={`Cost (${t.currency})`}
-          value={money(t.totalCost)}
-        />,
-        <Kpi
           key={`${t.currency}-value`}
           label={`Value (${t.currency})`}
           value={money(t.marketValue)}
+          sub={`Cost ${money(t.totalCost)}`}
         />,
         <Kpi
-          key={`${t.currency}-pnl`}
-          label={`P/L (${t.currency})`}
-          value={`${t.unrealizedPnl >= 0 ? "+" : ""}${money(t.unrealizedPnl)}`}
+          key={`${t.currency}-unrealized`}
+          label={`Unrealized (${t.currency})`}
+          value={signed(t.unrealizedPnl)}
+          sub={`${signed(t.unrealizedPnlPct * 100)}%`}
           tone={t.unrealizedPnl >= 0 ? "good" : "bad"}
         />,
         <Kpi
-          key={`${t.currency}-pnlpct`}
-          label={`P/L % (${t.currency})`}
-          value={`${t.unrealizedPnlPct >= 0 ? "+" : ""}${(t.unrealizedPnlPct * 100).toFixed(2)}%`}
-          tone={t.unrealizedPnlPct >= 0 ? "good" : "bad"}
+          key={`${t.currency}-realized`}
+          label={`Realized (${t.currency})`}
+          value={signed(t.realizedPnl)}
+          sub={t.realizedPnl === 0 ? "no sells yet" : "from closed sells"}
+          tone={t.realizedPnl > 0 ? "good" : t.realizedPnl < 0 ? "bad" : "neutral"}
+        />,
+        <Kpi
+          key={`${t.currency}-total`}
+          label={`Total P/L (${t.currency})`}
+          value={signed(t.totalPnl)}
+          sub="realized + unrealized"
+          tone={t.totalPnl >= 0 ? "good" : "bad"}
         />,
       ])}
     </div>
@@ -35,11 +40,13 @@ export function PortfolioTotals({ totals }: { totals: CurrencyTotal[] }) {
 function Kpi({
   label,
   value,
+  sub,
   tone,
 }: {
   label: string;
   value: string;
-  tone?: "good" | "bad";
+  sub?: string;
+  tone?: "good" | "bad" | "neutral";
 }) {
   const valueCls =
     tone === "good"
@@ -57,6 +64,7 @@ function Kpi({
       >
         {value}
       </div>
+      {sub && <div className="mt-1 text-xs text-slate-400">{sub}</div>}
     </div>
   );
 }
@@ -66,4 +74,8 @@ function money(n: number): string {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
+}
+
+function signed(n: number): string {
+  return `${n >= 0 ? "+" : ""}${money(n)}`;
 }

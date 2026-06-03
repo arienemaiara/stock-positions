@@ -185,10 +185,19 @@ export function macdHistPctOfPrice(closes: number[]): number | null {
  * (last close / SMA200 - 1) * 100. Percent above or below the 200-day average.
  */
 export function priceVsSma200Pct(closes: number[]): number | null {
-  const sma200 = smaLast(closes, 200);
+  return priceVsSmaPct(closes, 200);
+}
+
+/** Same as above for a 90-day window — more sensitive medium-term trend. */
+export function priceVsSma90Pct(closes: number[]): number | null {
+  return priceVsSmaPct(closes, 90);
+}
+
+function priceVsSmaPct(closes: number[], n: number): number | null {
+  const sma = smaLast(closes, n);
   const last = closes[closes.length - 1];
-  if (sma200 === null || last === undefined || sma200 === 0) return null;
-  return (last / sma200 - 1) * 100;
+  if (sma === null || last === undefined || sma === 0) return null;
+  return (last / sma - 1) * 100;
 }
 
 /**

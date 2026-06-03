@@ -18,15 +18,35 @@ export const INDICATOR_META: Record<string, IndicatorMeta> = {
     short: "P/E adjusted for expected earnings growth",
     long: "PEG ratio: price-to-earnings divided by expected earnings growth. Under 1 suggests the price is cheap given how fast earnings should grow. Negative or zero growth makes this number meaningless, so it's marked unavailable in that case.",
   },
+  forward_pe: {
+    label: "Forward P/E",
+    short: "Price ÷ next-twelve-month expected earnings",
+    long: "Like P/E but using next-twelve-month analyst earnings estimates instead of trailing. Yahoo provides one NTM figure (not split by calendar year). Lower is cheaper relative to expected earnings.",
+  },
+  ev_to_ebitda: {
+    label: "EV / EBITDA",
+    short: "Enterprise value divided by EBITDA",
+    long: "Cleaner valuation ratio than P/E because it includes debt and cash and ignores tax / depreciation accounting. Lower means the business is cheaper relative to the operating cash it generates.",
+  },
   roe: {
     label: "Return on equity",
     short: "Profit generated per dollar of shareholder equity",
     long: "How efficiently the business turns shareholder money into profit. Higher is better — strong, durable businesses tend to sit above 15%. Very high values can be driven by aggressive buybacks shrinking the equity base, so context matters.",
   },
+  roic: {
+    label: "Return on invested capital",
+    short: "After-tax operating profit ÷ invested capital",
+    long: "How efficiently the business turns ALL invested capital (debt + equity) into operating profit. Cleaner than ROE because it isn't distorted by buybacks shrinking equity. Above 15% usually signals a high-quality compounder. Tax rate falls back to 21% when Yahoo's tax data is unusable.",
+  },
   debt_to_equity: {
     label: "Debt load",
     short: "Total debt relative to shareholder equity",
     long: "How much the company borrows compared to what shareholders have invested. Lower means less financial risk; higher leverage amplifies both gains and losses, and makes the business more sensitive to interest rates.",
+  },
+  net_debt_to_ebitda: {
+    label: "Net debt / EBITDA",
+    short: "Years of EBITDA needed to pay off net debt",
+    long: "(Total debt − cash) divided by EBITDA. Negative means the company has more cash than debt. Above ~3 typically indicates a stretched balance sheet, especially for cyclical businesses.",
   },
   fcf_growth: {
     label: "Cash flow growth",
@@ -47,6 +67,11 @@ export const INDICATOR_META: Record<string, IndicatorMeta> = {
     label: "200-day trend",
     short: "Price vs the 200-day moving average",
     long: "How far the current price sits above or below its 200-day average. Comfortably above = in a clear uptrend; well below = in a downtrend. Often the simplest, most stable trend filter there is.",
+  },
+  sma_90_trend: {
+    label: "90-day trend",
+    short: "Price vs the 90-day moving average",
+    long: "Same idea as the 200-day trend but on a shorter, more sensitive window. Captures the medium-term trend so it can disagree with the long-term one (early reversal or pullback inside an uptrend).",
   },
   volume_confirm: {
     label: "Volume confirmation",

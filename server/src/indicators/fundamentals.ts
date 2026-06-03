@@ -32,6 +32,57 @@ export function roe(fund: FundamentalsSnapshot): number | null {
   return fund.returnOnEquity;
 }
 
+/** Forward P/E. Null on missing or non-positive (negative forward EPS). */
+export function forwardPE(fund: FundamentalsSnapshot): number | null {
+  const v = fund.forwardPE;
+  if (v === null || v <= 0) return null;
+  return v;
+}
+
+/** EV / EBITDA passthrough. Null on missing or non-positive. */
+export function evToEbitda(fund: FundamentalsSnapshot): number | null {
+  const v = fund.enterpriseToEbitda;
+  if (v === null || v <= 0) return null;
+  return v;
+}
+
+/**
+ * (Total debt − total cash) / EBITDA. Lower is better; negative means net cash.
+ * Null when EBITDA is missing or non-positive (ratio meaningless).
+ */
+export function netDebtToEbitda(fund: FundamentalsSnapshot): number | null {
+  const debt = fund.totalDebt;
+  const cash = fund.totalCash;
+  const ebitda = fund.ebitda;
+  if (debt === null || cash === null || ebitda === null) return null;
+  if (ebitda <= 0) return null;
+  return (debt - cash) / ebitda;
+}
+
+/**
+ * Return on Invested Capital.
+ * ROIC = operatingIncome × (1 − effectiveTaxRate) / investedCapital
+ * effectiveTaxRate = taxProvision / pretaxIncome, falling back to 21% if either
+ * is unusable (negative pretax income, zero, etc).
+ *
+ * Null when operatingIncome or investedCapital is missing or invested capital
+ * is non-positive.
+ */
+export function roic(fund: FundamentalsSnapshot): number | null {
+  const ebit = fund.operatingIncome;
+  const ic = fund.investedCapital;
+  if (ebit === null || ic === null || ic <= 0) return null;
+
+  const tax =
+    fund.pretaxIncome !== null &&
+    fund.taxProvision !== null &&
+    fund.pretaxIncome > 0
+      ? Math.max(0, Math.min(0.5, fund.taxProvision / fund.pretaxIncome))
+      : 0.21;
+
+  return (ebit * (1 - tax)) / ic;
+}
+
 /**
  * Debt / equity passthrough. Data adapter is responsible for normalizing to a
  * decimal (1.5 means 150%). Yahoo's `debtToEquity` is a percentage (150) and

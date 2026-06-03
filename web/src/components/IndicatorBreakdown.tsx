@@ -1,5 +1,6 @@
 import type { BreakdownEntry } from "../api/client";
 import { getIndicatorMeta } from "../data/indicatorMeta";
+import { formatScorePct, readingLabel, readingTone } from "../data/format";
 
 export function IndicatorBreakdown({ rows }: { rows: BreakdownEntry[] }) {
   const sorted = [...rows].sort(
@@ -13,7 +14,8 @@ export function IndicatorBreakdown({ rows }: { rows: BreakdownEntry[] }) {
           Indicator breakdown
         </h2>
         <p className="text-xs text-slate-500">
-          Each indicator's value, sub-score, weight, and weighted contribution.
+          Each indicator's raw value, the engine's reading, its weight, and how
+          much it shifts the final score. Buy at total ≥ +30%, Sell at ≤ −30%.
         </p>
       </div>
       <table className="w-full text-sm">
@@ -21,9 +23,9 @@ export function IndicatorBreakdown({ rows }: { rows: BreakdownEntry[] }) {
           <tr className="text-left">
             <Th>Indicator</Th>
             <Th className="text-right">Value</Th>
-            <Th className="text-right">Sub-score</Th>
+            <Th className="text-right">Reading</Th>
             <Th className="text-right">Weight</Th>
-            <Th className="text-right">Contribution</Th>
+            <Th className="text-right">Impact</Th>
           </tr>
         </thead>
         <tbody>
@@ -48,8 +50,26 @@ export function IndicatorBreakdown({ rows }: { rows: BreakdownEntry[] }) {
                 <Td className="text-right tabular-nums">
                   {r.available ? formatValue(r.value) : "—"}
                 </Td>
-                <Td className="text-right tabular-nums">
-                  {r.available ? r.subScore.toFixed(2) : "—"}
+                <Td className="text-right">
+                  {r.available ? (
+                    <div className="flex flex-col items-end gap-1.5">
+                      <span
+                        className={
+                          "text-sm font-medium " +
+                          (readingTone(r.subScore) === "good"
+                            ? "text-emerald-600"
+                            : readingTone(r.subScore) === "bad"
+                              ? "text-rose-600"
+                              : "text-slate-500")
+                        }
+                      >
+                        {readingLabel(r.subScore)}
+                      </span>
+                      <SubScoreBar value={r.subScore} />
+                    </div>
+                  ) : (
+                    "—"
+                  )}
                 </Td>
                 <Td className="text-right tabular-nums">
                   {(r.weight * 100).toFixed(1)}%
@@ -67,8 +87,7 @@ export function IndicatorBreakdown({ rows }: { rows: BreakdownEntry[] }) {
                           : "text-slate-400"
                     }
                   >
-                    {r.contribution >= 0 ? "+" : ""}
-                    {r.contribution.toFixed(3)}
+                    {formatScorePct(r.contribution)}
                   </span>
                 </Td>
               </tr>
@@ -76,6 +95,29 @@ export function IndicatorBreakdown({ rows }: { rows: BreakdownEntry[] }) {
           })}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+function SubScoreBar({ value }: { value: number }) {
+  const pct = Math.min(Math.abs(value), 1) * 50;
+  const fill =
+    value > 0
+      ? "bg-gradient-to-r from-emerald-300 to-emerald-500"
+      : value < 0
+        ? "bg-gradient-to-l from-rose-500 to-rose-300"
+        : "bg-slate-300";
+  return (
+    <div className="relative h-1.5 w-20 rounded-full bg-slate-100">
+      <div className="absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-slate-300" />
+      <div
+        className={`absolute top-0 h-full rounded-full ${fill}`}
+        style={
+          value >= 0
+            ? { left: "50%", width: `${pct}%` }
+            : { right: "50%", width: `${pct}%` }
+        }
+      />
     </div>
   );
 }

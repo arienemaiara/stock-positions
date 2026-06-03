@@ -5,7 +5,7 @@
 
   "indicators": {
     "pe_vs_sector": {
-      "weight": 0.15,
+      "weight": 0.10,
       "metric": "peToSectorRatio",
       "_metric_doc": "trailing P/E divided by sector median P/E. <1 = cheaper than peers. null if earnings negative or sector data missing.",
       "bands": [
@@ -18,7 +18,7 @@
     },
 
     "peg": {
-      "weight": 0.10,
+      "weight": 0.06,
       "metric": "pegRatio",
       "_metric_doc": "P/E divided by expected earnings growth %. <1 = cheap relative to growth. Emit null (not a negative number) when growth <= 0 so it neutralizes + flags rather than scoring noise.",
       "bands": [
@@ -30,8 +30,34 @@
       ]
     },
 
+    "forward_pe": {
+      "weight": 0.05,
+      "metric": "forwardPE",
+      "_metric_doc": "Yahoo's forward P/E — price divided by next-twelve-month consensus EPS. Lower is cheaper.",
+      "bands": [
+        { "upTo": 12, "score": 1.0 },
+        { "upTo": 18, "score": 0.5 },
+        { "upTo": 25, "score": 0.0 },
+        { "upTo": 35, "score": -0.5 },
+        { "upTo": null, "score": -1.0 }
+      ]
+    },
+
+    "ev_to_ebitda": {
+      "weight": 0.08,
+      "metric": "evToEbitda",
+      "_metric_doc": "Enterprise value / EBITDA. Cleaner than P/E because it strips out capital structure and accounting noise. Lower is cheaper.",
+      "bands": [
+        { "upTo": 8, "score": 1.0 },
+        { "upTo": 12, "score": 0.5 },
+        { "upTo": 18, "score": 0.0 },
+        { "upTo": 25, "score": -0.5 },
+        { "upTo": null, "score": -1.0 }
+      ]
+    },
+
     "roe": {
-      "weight": 0.10,
+      "weight": 0.07,
       "metric": "roe",
       "_metric_doc": "return on equity as a decimal (0.15 = 15%). Higher is better.",
       "bands": [
@@ -43,8 +69,21 @@
       ]
     },
 
-    "debt_to_equity": {
+    "roic": {
       "weight": 0.10,
+      "metric": "roic",
+      "_metric_doc": "Return on Invested Capital as a decimal. operatingIncome × (1 - effectiveTaxRate) / investedCapital. Tax rate falls back to 21% when pretax income / tax provision are unusable. Cleaner business-quality signal than ROE because it isn't distorted by buybacks shrinking equity.",
+      "bands": [
+        { "upTo": 0.0, "score": -1.0 },
+        { "upTo": 0.05, "score": -0.5 },
+        { "upTo": 0.10, "score": 0.0 },
+        { "upTo": 0.15, "score": 0.5 },
+        { "upTo": null, "score": 1.0 }
+      ]
+    },
+
+    "debt_to_equity": {
+      "weight": 0.04,
       "metric": "debtToEquity",
       "_metric_doc": "total debt / total equity. Lower is better.",
       "bands": [
@@ -56,8 +95,21 @@
       ]
     },
 
+    "net_debt_to_ebitda": {
+      "weight": 0.08,
+      "metric": "netDebtToEbitda",
+      "_metric_doc": "(total debt − total cash) / EBITDA. Negative = net cash (no debt burden). Lower is better; above ~3 starts to indicate stretched balance sheets.",
+      "bands": [
+        { "upTo": 0.0, "score": 1.0 },
+        { "upTo": 1.0, "score": 0.5 },
+        { "upTo": 2.0, "score": 0.0 },
+        { "upTo": 3.5, "score": -0.5 },
+        { "upTo": null, "score": -1.0 }
+      ]
+    },
+
     "fcf_growth": {
-      "weight": 0.15,
+      "weight": 0.10,
       "metric": "fcfGrowthYoY",
       "_metric_doc": "year-over-year free cash flow growth as a decimal (0.10 = +10%). Higher is better.",
       "bands": [
@@ -70,7 +122,7 @@
     },
 
     "rsi": {
-      "weight": 0.10,
+      "weight": 0.06,
       "metric": "rsi14",
       "_metric_doc": "14-period RSI (0-100). Contrarian/mean-reversion reading: oversold (<30) = bullish, overbought (>70) = bearish. If you prefer a momentum reading, invert these scores.",
       "bands": [
@@ -83,7 +135,7 @@
     },
 
     "macd": {
-      "weight": 0.10,
+      "weight": 0.06,
       "metric": "macdHistPctOfPrice",
       "_metric_doc": "(MACD line - signal line) / price * 100. Normalized by price so it is comparable across tickers. Positive = bullish momentum.",
       "bands": [
@@ -96,9 +148,22 @@
     },
 
     "sma_trend": {
-      "weight": 0.10,
+      "weight": 0.07,
       "metric": "priceVsSma200Pct",
-      "_metric_doc": "(price / SMA200 - 1) * 100. Percent above/below the 200-day average. Above = uptrend. The technicals module may also factor the 50/200 cross into this metric.",
+      "_metric_doc": "(price / SMA200 - 1) * 100. Percent above/below the 200-day average. Above = uptrend.",
+      "bands": [
+        { "upTo": -5, "score": -1.0 },
+        { "upTo": 0, "score": -0.5 },
+        { "upTo": 2, "score": 0.0 },
+        { "upTo": 8, "score": 0.5 },
+        { "upTo": null, "score": 1.0 }
+      ]
+    },
+
+    "sma_90_trend": {
+      "weight": 0.05,
+      "metric": "priceVsSma90Pct",
+      "_metric_doc": "(price / SMA90 - 1) * 100. Same idea as sma_trend but on a shorter, more sensitive window. Captures the medium-term trend separately from the long one.",
       "bands": [
         { "upTo": -5, "score": -1.0 },
         { "upTo": 0, "score": -0.5 },
@@ -109,7 +174,7 @@
     },
 
     "volume_confirm": {
-      "weight": 0.10,
+      "weight": 0.04,
       "metric": "signedVolumeRatio",
       "_metric_doc": "(recent avg volume / longer-term avg volume) * sign(recent price change). Heavy volume confirming an up-move is bullish; heavy volume on a down-move is bearish. This is the crudest indicator here and the first candidate to down-weight or drop.",
       "bands": [

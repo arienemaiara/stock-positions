@@ -1,5 +1,6 @@
 import type { BreakdownEntry } from "../api/client";
 import { getIndicatorMeta } from "../data/indicatorMeta";
+import { formatScorePct } from "../data/format";
 
 export function ScoreContribChart({ rows }: { rows: BreakdownEntry[] }) {
   const data = [...rows].sort(
@@ -43,7 +44,7 @@ export function ScoreContribChart({ rows }: { rows: BreakdownEntry[] }) {
           return (
             <li
               key={r.id}
-              className="grid grid-cols-[200px_1fr_72px] items-center gap-4"
+              className="grid grid-cols-[140px_1fr_60px] items-center gap-3"
             >
               <div className="min-w-0">
                 <div className="truncate text-sm font-medium text-slate-800">
@@ -67,9 +68,7 @@ export function ScoreContribChart({ rows }: { rows: BreakdownEntry[] }) {
               <div
                 className={`text-right text-sm font-medium tabular-nums ${valueClass}`}
               >
-                {r.available
-                  ? `${r.contribution >= 0 ? "+" : ""}${r.contribution.toFixed(3)}`
-                  : "—"}
+                {r.available ? formatScorePct(r.contribution) : "—"}
               </div>
             </li>
           );

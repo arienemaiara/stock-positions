@@ -4,9 +4,18 @@
 
 export interface FundamentalsSnapshot {
   trailingPE: number | null;
+  forwardPE: number | null;
   pegRatio: number | null;
   returnOnEquity: number | null;
   debtToEquity: number | null;
+  enterpriseToEbitda: number | null;
+  ebitda: number | null;
+  totalDebt: number | null;
+  totalCash: number | null;
+  operatingIncome: number | null;
+  pretaxIncome: number | null;
+  taxProvision: number | null;
+  investedCapital: number | null;
   freeCashFlowAnnual: AnnualValue[];
   sector: string | null;
 }
@@ -36,11 +45,16 @@ export interface PriceBar {
 export interface Metrics {
   peToSectorRatio: number | null;
   pegRatio: number | null;
+  forwardPE: number | null;
+  evToEbitda: number | null;
   roe: number | null;
+  roic: number | null;
   debtToEquity: number | null;
+  netDebtToEbitda: number | null;
   fcfGrowthYoY: number | null;
   rsi14: number | null;
   macdHistPctOfPrice: number | null;
   priceVsSma200Pct: number | null;
+  priceVsSma90Pct: number | null;
   signedVolumeRatio: number | null;
 }

@@ -98,11 +98,14 @@ export async function removeFromWatchlist(id: number): Promise<void> {
 }
 
 // Portfolio
+export type LotType = "buy" | "sell";
+
 export interface PositionLot {
   id: number;
   tradeDate: string;
   shares: number;
   price: number | null;
+  type: LotType;
 }
 
 export interface Position {
@@ -115,6 +118,7 @@ export interface Position {
   marketValue: number | null;
   unrealizedPnl: number | null;
   unrealizedPnlPct: number | null;
+  realizedPnl: number;
   lots: PositionLot[];
 }
 
@@ -124,6 +128,8 @@ export interface CurrencyTotal {
   marketValue: number;
   unrealizedPnl: number;
   unrealizedPnlPct: number;
+  realizedPnl: number;
+  totalPnl: number;
 }
 
 export interface PortfolioSnapshot {
@@ -142,6 +148,7 @@ export interface AddLotInput {
   tradeDate: string;
   shares: number;
   price: number | null;
+  type: LotType;
 }
 
 export async function addLot(input: AddLotInput): Promise<void> {

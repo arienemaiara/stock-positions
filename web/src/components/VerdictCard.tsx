@@ -1,5 +1,6 @@
 import type { AnalysisResponse } from "../api/client";
 import { INDICATOR_META } from "../data/indicatorMeta";
+import { formatScorePct } from "../data/format";
 
 const VERDICT_BADGE: Record<AnalysisResponse["verdict"], string> = {
   buy: "bg-emerald-100 text-emerald-700 ring-emerald-200",
@@ -54,10 +55,11 @@ export function VerdictCard({ data }: { data: AnalysisResponse }) {
                 : "text-slate-900")
           }
         >
-          {data.score >= 0 ? "+" : ""}
-          {data.score.toFixed(3)}
+          {formatScorePct(data.score)}
         </div>
-        <Sub>weighted score · {data.ticker}</Sub>
+        <Sub>
+          weighted score · Buy ≥ +30% · Sell ≤ −30%
+        </Sub>
       </div>
 
       {data.flags.length > 0 && (

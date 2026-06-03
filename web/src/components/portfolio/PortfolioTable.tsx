@@ -29,7 +29,8 @@ export function PortfolioTable({
               <Th className="text-right">Avg cost</Th>
               <Th className="text-right">Price</Th>
               <Th className="text-right">Value</Th>
-              <Th className="text-right">P/L</Th>
+              <Th className="text-right">Unreal. P/L</Th>
+              <Th className="text-right">Realized P/L</Th>
               <Th className="text-right">P/L %</Th>
             </tr>
           </thead>
@@ -73,15 +74,19 @@ export function PortfolioTable({
                       <PnL value={p.unrealizedPnl} />
                     </Td>
                     <Td className="text-right tabular-nums">
+                      <PnL value={p.realizedPnl === 0 ? null : p.realizedPnl} />
+                    </Td>
+                    <Td className="text-right tabular-nums">
                       <PnLPct value={p.unrealizedPnlPct} />
                     </Td>
                   </tr>
                   {isOpen && (
                     <tr className="bg-slate-50">
-                      <td colSpan={7} className="px-5 py-3">
+                      <td colSpan={8} className="px-5 py-3">
                         <table className="w-full text-xs">
                           <thead className="text-slate-500">
                             <tr className="text-left">
+                              <th className="py-1 font-medium">Type</th>
                               <th className="py-1 font-medium">Trade date</th>
                               <th className="py-1 text-right font-medium">
                                 Shares
@@ -98,6 +103,9 @@ export function PortfolioTable({
                                 key={lot.id}
                                 className="border-t border-slate-200/70"
                               >
+                                <td className="py-1.5">
+                                  <LotTypeBadge type={lot.type} />
+                                </td>
                                 <td className="py-1.5">{lot.tradeDate}</td>
                                 <td className="py-1.5 text-right tabular-nums">
                                   {lot.shares.toFixed(
@@ -129,6 +137,20 @@ export function PortfolioTable({
         </table>
       </div>
     </div>
+  );
+}
+
+function LotTypeBadge({ type }: { type: "buy" | "sell" }) {
+  const cls =
+    type === "buy"
+      ? "bg-emerald-100 text-emerald-700 ring-emerald-200"
+      : "bg-rose-100 text-rose-700 ring-rose-200";
+  return (
+    <span
+      className={`rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ring-1 ${cls}`}
+    >
+      {type}
+    </span>
   );
 }
 

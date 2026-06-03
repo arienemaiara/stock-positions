@@ -33,12 +33,17 @@ export function computeMetrics(input: {
       input.sector,
     ),
     pegRatio: fundamentals.pegRatio(input.fundamentals),
+    forwardPE: fundamentals.forwardPE(input.fundamentals),
+    evToEbitda: fundamentals.evToEbitda(input.fundamentals),
     roe: fundamentals.roe(input.fundamentals),
+    roic: fundamentals.roic(input.fundamentals),
     debtToEquity: fundamentals.debtToEquity(input.fundamentals),
+    netDebtToEbitda: fundamentals.netDebtToEbitda(input.fundamentals),
     fcfGrowthYoY: fundamentals.fcfGrowthYoY(input.fundamentals),
     rsi14: technicals.rsi(closes, 14),
     macdHistPctOfPrice: technicals.macdHistPctOfPrice(closes),
     priceVsSma200Pct: technicals.priceVsSma200Pct(closes),
+    priceVsSma90Pct: technicals.priceVsSma90Pct(closes),
     signedVolumeRatio: technicals.signedVolumeRatio(input.bars),
   };
 }

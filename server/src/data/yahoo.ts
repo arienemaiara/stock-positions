@@ -38,8 +38,18 @@ const SECTOR_PE_TTL_MS = 6 * 60 * 60 * 1000;
 
 interface QuoteSummary {
   summaryDetail?: { trailingPE?: number };
-  financialData?: { returnOnEquity?: number; debtToEquity?: number };
-  defaultKeyStatistics?: { pegRatio?: number };
+  financialData?: {
+    returnOnEquity?: number;
+    debtToEquity?: number;
+    ebitda?: number;
+    totalDebt?: number;
+    totalCash?: number;
+  };
+  defaultKeyStatistics?: {
+    pegRatio?: number;
+    forwardPE?: number;
+    enterpriseToEbitda?: number;
+  };
   assetProfile?: { sector?: string };
 }
 
@@ -48,6 +58,18 @@ interface CashFlowRow {
   freeCashFlow?: number;
   operatingCashFlow?: number;
   capitalExpenditure?: number;
+}
+
+interface FinancialsRow {
+  date?: Date | string | number;
+  operatingIncome?: number;
+  pretaxIncome?: number;
+  taxProvision?: number;
+}
+
+interface BalanceSheetRow {
+  date?: Date | string | number;
+  investedCapital?: number;
 }
 
 interface Quote {
@@ -108,30 +130,47 @@ export class YahooDataSource implements DataSource {
   async getAnalysisInputs(ticker: string): Promise<AnalysisInputs> {
     const symbol = ticker.trim().toUpperCase();
 
-    const [quote, summary, chart, cashFlow] = await Promise.all([
-      yahooFinance.quote(symbol) as Promise<Quote>,
-      yahooFinance.quoteSummary(symbol, {
-        modules: [
-          "summaryDetail",
-          "financialData",
-          "defaultKeyStatistics",
-          "assetProfile",
-        ],
-      }) as Promise<QuoteSummary>,
-      fetchChart(symbol),
-      fetchAnnualCashFlow(symbol),
-    ]);
+    const [quote, summary, chart, cashFlow, financials, balanceSheet] =
+      await Promise.all([
+        yahooFinance.quote(symbol) as Promise<Quote>,
+        yahooFinance.quoteSummary(symbol, {
+          modules: [
+            "summaryDetail",
+            "financialData",
+            "defaultKeyStatistics",
+            "assetProfile",
+          ],
+        }) as Promise<QuoteSummary>,
+        fetchChart(symbol),
+        fetchAnnualCashFlow(symbol),
+        fetchAnnualFinancials(symbol),
+        fetchAnnualBalanceSheet(symbol),
+      ]);
+
+    const lastFin = financials[financials.length - 1];
+    const lastBs = balanceSheet[balanceSheet.length - 1];
 
     const sectorName = summary.assetProfile?.sector ?? null;
     const sectorPE = sectorName ? await getSectorPE(sectorName) : null;
 
     const fundamentals: FundamentalsSnapshot = {
       trailingPE: pickNumber(summary.summaryDetail?.trailingPE),
+      forwardPE: pickNumber(summary.defaultKeyStatistics?.forwardPE),
       pegRatio: pickNumber(summary.defaultKeyStatistics?.pegRatio),
       returnOnEquity: pickNumber(summary.financialData?.returnOnEquity),
       debtToEquity: yahooDebtToEquityToDecimal(
         summary.financialData?.debtToEquity,
       ),
+      enterpriseToEbitda: pickNumber(
+        summary.defaultKeyStatistics?.enterpriseToEbitda,
+      ),
+      ebitda: pickNumber(summary.financialData?.ebitda),
+      totalDebt: pickNumber(summary.financialData?.totalDebt),
+      totalCash: pickNumber(summary.financialData?.totalCash),
+      operatingIncome: pickNumber(lastFin?.operatingIncome),
+      pretaxIncome: pickNumber(lastFin?.pretaxIncome),
+      taxProvision: pickNumber(lastFin?.taxProvision),
+      investedCapital: pickNumber(lastBs?.investedCapital),
       freeCashFlowAnnual: extractAnnualFcf(cashFlow),
       sector: sectorName,
     };
@@ -216,6 +255,36 @@ function yahooDebtToEquityToDecimal(
   const n = pickNumber(raw);
   if (n === null) return null;
   return n / 100;
+}
+
+async function fetchAnnualFinancials(symbol: string): Promise<FinancialsRow[]> {
+  const period1 = new Date();
+  period1.setFullYear(period1.getFullYear() - 2);
+  try {
+    return (await yahooFinance.fundamentalsTimeSeries(symbol, {
+      period1,
+      type: "annual",
+      module: "financials",
+    })) as FinancialsRow[];
+  } catch {
+    return [];
+  }
+}
+
+async function fetchAnnualBalanceSheet(
+  symbol: string,
+): Promise<BalanceSheetRow[]> {
+  const period1 = new Date();
+  period1.setFullYear(period1.getFullYear() - 2);
+  try {
+    return (await yahooFinance.fundamentalsTimeSeries(symbol, {
+      period1,
+      type: "annual",
+      module: "balance-sheet",
+    })) as BalanceSheetRow[];
+  } catch {
+    return [];
+  }
 }
 
 async function fetchAnnualCashFlow(symbol: string): Promise<CashFlowRow[]> {

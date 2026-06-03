@@ -66,9 +66,13 @@ export function AnalyzeView({
         <>
           <VerdictCard data={data} />
 
-          <div className="grid gap-6 lg:grid-cols-2">
-            <ScoreContribChart rows={data.breakdown} />
-            <IndicatorBreakdown rows={data.breakdown} />
+          <div className="grid gap-6 lg:grid-cols-5">
+            <div className="lg:col-span-2">
+              <ScoreContribChart rows={data.breakdown} />
+            </div>
+            <div className="lg:col-span-3">
+              <IndicatorBreakdown rows={data.breakdown} />
+            </div>
           </div>
 
           <PriceChart
