@@ -106,10 +106,10 @@ export function impliedGrowthGapPp(
   fund: FundamentalsSnapshot,
 ): number | null {
   const expected = fund.expectedEpsGrowth1y;
-  if (expected === null) return null;
+  if (expected == null) return null;
 
   const eps = fund.epsAnnual;
-  if (eps.length < 4) return null;
+  if (!eps || eps.length < 4) return null;
   const newest = eps[0]!.value;
   const oldest = eps[3]!.value;
   if (newest <= 0 || oldest <= 0) return null;
