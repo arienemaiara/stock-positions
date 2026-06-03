@@ -131,6 +131,22 @@ Health check at `/api/health` (skipped by basic auth so Render can probe it).
 Open the Render URL, log in with the basic auth credentials, and analyze a
 ticker. Data lives in Turso and survives restarts and deploys.
 
+## Data sources
+
+The app talks to one of two providers behind the same `DataSource` interface:
+
+- **Yahoo Finance** via `yahoo-finance2` — default. No key required, but it's
+  scraping (no official API), and shared-IP hosts like Render free-tier get
+  rate-limited by Yahoo's anti-scraping.
+- **Financial Modeling Prep (FMP)** — a real API. Set `FMP_API_KEY` and the
+  app uses FMP for everything. Free tier is 250 calls/day, US tickers only.
+  Each cold ticker analyze burns ~8 calls; with the 1-hour cache that's plenty
+  for a single user.
+
+The selection is automatic: `FMP_API_KEY` set → FMP, otherwise Yahoo. To use
+FMP, sign up at https://site.financialmodelingprep.com/, copy the key, and set
+`FMP_API_KEY` in Render's environment (or in your local shell for dev).
+
 ## Tuning the scoring engine
 
 Weights and thresholds live in `server/src/scoring/config.json`. Each indicator
